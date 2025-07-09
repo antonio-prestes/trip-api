@@ -1,0 +1,392 @@
+{
+	"info": {
+		"_postman_id": "travel-api-collection",
+		"name": "Trip API Collection",
+		"description": "Coleção completa das requisições da Trip API - Sistema de gerenciamento de solicitações de viagem",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "travel-api"
+	},
+	"item": [
+		{
+			"name": "Autenticação",
+			"item": [
+				{
+					"name": "Registrar Usuário",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"João Silva\",\n    \"email\": \"joao@exemplo.com\",\n    \"password\": \"senha123\",\n    \"password_confirmation\": \"senha123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"register"
+							]
+						},
+						"description": "Registra um novo usuário no sistema. Retorna os dados do usuário e um token de autenticação."
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set(\"auth_token\", jsonData.access_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"joao@exemplo.com\",\n    \"password\": \"senha123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						},
+						"description": "Autentica um usuário no sistema. Automaticamente salva o token de autenticação nas variáveis de ambiente."
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/refresh",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"refresh"
+							]
+						},
+						"description": "Atualiza o token de autenticação."
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Dados do Usuário",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/user",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user"
+							]
+						},
+						"description": "Retorna os dados do usuário autenticado."
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"logout"
+							]
+						},
+						"description": "Faz logout do usuário e invalida o token atual."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para autenticação de usuários (registro, login, logout e obtenção de dados do usuário)."
+		},
+		{
+			"name": "Solicitações de Viagem",
+			"item": [
+				{
+					"name": "Criar Solicitação de Viagem",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"destination\": \"Nova Iorque\",\n    \"departure_date\": \"2024-08-01\",\n    \"return_date\": \"2024-08-10\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/trip-requests",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"trip-requests"
+							]
+						},
+						"description": "Cria uma nova solicitação de viagem. O status inicial será 'solicitado'."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Todas as Solicitações",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/trip-requests",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"trip-requests"
+							]
+						},
+						"description": "Lista todas as solicitações de viagem do sistema."
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Solicitação Específica",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/trip-requests/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"trip-requests",
+								"1"
+							]
+						},
+						"description": "Obtém detalhes de uma solicitação específica, incluindo dados do usuário."
+					},
+					"response": []
+				},
+				{
+					"name": "Aprovar Solicitação (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"aprovado\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/trip-requests/1/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"trip-requests",
+								"1",
+								"status"
+							]
+						},
+						"description": "Aprova uma solicitação de viagem. Apenas administradores podem realizar esta ação."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gerenciamento de solicitações de viagem (criar, listar, filtrar, visualizar e gerenciar status)."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string",
+			"description": "URL base da API"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string",
+			"description": "Token de autenticação Bearer"
+		}
+	]
+}
