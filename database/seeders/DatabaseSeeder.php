@@ -13,15 +13,26 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
+        // Cria usuário admin
         User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'name' => 'Admin',
+            'email' => 'admin@example.com',
+            'role' => 'admin',
         ]);
 
+        // Cria 5 usuários normais
+        $this->call([
+            UserSeeder::class,
+        ]);
+
+        // Cria status de viagem
         $this->call([
             TripStatusSeeder::class,
+        ]);
+
+        // Cria 5 trips para cada usuário normal
+        $this->call([
+            TripSeeder::class,
         ]);
     }
 }

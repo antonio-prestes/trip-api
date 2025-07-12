@@ -40,10 +40,6 @@ O projeto suporta múltiplas configurações de banco de dados:
    - Utiliza o arquivo `database/database.sqlite`
    - Ideal para desenvolvimento sem Docker
 
-3. **SQLite em memória para testes**
-   - Configurado no arquivo `.env.testing` e `phpunit.xml`
-   - Utiliza banco de dados em memória
-   - Ideal para execução rápida de testes
 
 Para alternar entre as configurações:
 ```bash
@@ -59,7 +55,7 @@ cp .env.example .env
 1. **Clone o repositório:**
    ```bash
    git clone <url-do-repositorio>
-   cd travel-api
+   cd trip-api
    ```
 
 2. **Execute o script de configuração:**
@@ -67,11 +63,25 @@ cp .env.example .env
    ./up.sh
    ```
 
-   O script irá:
-   - Criar o arquivo `.env` baseado no `.env.example`
-   - Subir os containers Docker
-   - Instalar dependências do Composer
-   - Executar migrations e seeders
+Esse comando irá:
+- Copiar o arquivo `.env.example` para `.env`;
+- Subir os containers Docker;
+- Instalar as dependências PHP;
+- Gerar a chave da aplicação;
+- Executar as migrations e os seeders automaticamente (criando o usuário admin, 5 usuários normais e 5 viagens para cada usuário);
+- Gerar a documentação Swagger.
+
+Não é necessário rodar comandos adicionais para popular o banco: tudo é feito automaticamente ao rodar o `up.sh`.
+
+### Usuários criados automaticamente
+
+- **Admin:**
+    - Email: `admin@example.com`
+    - Senha: `password` (padrão de factory Laravel)
+
+- **Usuário normal:**
+    - Email: (um dos 5 aleatórios gerados, ex: `user1@example.com`)
+    - Senha: `password` (padrão de factory Laravel)
 
 3. **Acesse a aplicação:**
    - API: http://localhost:8000
@@ -82,7 +92,7 @@ cp .env.example .env
 1. **Clone o repositório:**
    ```bash
    git clone <url-do-repositorio>
-   cd travel-api
+   cd trip-api
    ```
 
 2. **Configure o ambiente:**
@@ -104,6 +114,8 @@ cp .env.example .env
    ```bash
    docker exec trip_laravel_app php artisan migrate --seed
    ```
+
+> **Obs:** Todos os usuários criados via seeder utilizam a senha padrão `password`.
 
 ## 🧪 Executando Testes
 
@@ -155,12 +167,11 @@ GET /api/trip-requests?status=solicitado&destination=Nova
 ### Usuário Comum (`user`)
 - Criar solicitações de viagem
 - Visualizar próprias solicitações
-- Visualizar todas as solicitações (listagem)
 
 ### Administrador (`admin`)
 - Todas as permissões do usuário comum
 - Alterar status das solicitações
-- Gerenciar todos os aspectos do sistema
+- Visualizar todas as solicitações
 
 ## 💾 Estrutura do Banco
 

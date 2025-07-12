@@ -61,8 +61,8 @@ class TripStatus extends Model
     {
         $transitions = [
             'solicitado' => ['aprovado', 'cancelado'],
-            'aprovado' => [], // Aprovado não pode ser alterado
-            'cancelado' => [] // Cancelado não pode ser alterado
+            'aprovado' => ['cancelado'],
+            'cancelado' => ['aprovado']
         ];
 
         return in_array($newStatusName, $transitions[$this->name] ?? []);

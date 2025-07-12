@@ -54,7 +54,7 @@ class TripRequestController extends Controller
 
         // Buscar o status 'solicitado'
         $pendingStatus = TripStatus::pending();
-        
+
         if (!$pendingStatus) {
             return response()->json([
                 'error' => 'Status "solicitado" não encontrado. Execute o seeder de status.'
@@ -75,8 +75,8 @@ class TripRequestController extends Controller
     #[OA\Get(
         path: "/api/trip-requests/{id}",
         summary: "Obter uma solicitação de viagem específica",
-        tags: ["Solicitações de Viagem"],
         security: [["bearerAuth" => []]],
+        tags: ["Solicitações de Viagem"],
         parameters: [
             new OA\Parameter(
                 name: "id",
@@ -119,8 +119,8 @@ class TripRequestController extends Controller
     #[OA\Get(
         path: "/api/trip-requests",
         summary: "Listar todas as solicitações de viagem",
-        tags: ["Solicitações de Viagem"],
         security: [["bearerAuth" => []]],
+        tags: ["Solicitações de Viagem"],
         parameters: [
             new OA\Parameter(name: "status", in: "query", required: false, schema: new OA\Schema(type: "string")),
             new OA\Parameter(name: "destination", in: "query", required: false, schema: new OA\Schema(type: "string")),
@@ -175,17 +175,7 @@ class TripRequestController extends Controller
     #[OA\Patch(
         path: "/api/trip-requests/{id}/status",
         summary: "Atualizar status da solicitação de viagem",
-        tags: ["Solicitações de Viagem"],
         security: [["bearerAuth" => []]],
-        parameters: [
-            new OA\Parameter(
-                name: "id",
-                description: "ID da solicitação de viagem",
-                in: "path",
-                required: true,
-                schema: new OA\Schema(type: "integer")
-            )
-        ],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
@@ -195,6 +185,16 @@ class TripRequestController extends Controller
                 ]
             )
         ),
+        tags: ["Solicitações de Viagem"],
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                description: "ID da solicitação de viagem",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "integer")
+            )
+        ],
         responses: [
             new OA\Response(response: 200, description: "Status atualizado com sucesso"),
             new OA\Response(response: 403, description: "Apenas administradores podem alterar o status"),
@@ -222,7 +222,7 @@ class TripRequestController extends Controller
 
         // Buscar o novo status
         $newStatus = TripStatus::where('name', $request->status)->first();
-        
+
         if (!$newStatus) {
             return response()->json([
                 'error' => "Status '{$request->status}' não encontrado."
