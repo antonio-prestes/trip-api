@@ -2,13 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTripRequestRequest;
+use App\Http\Requests\UpdateTripStatusRequest;
+use App\Services\TripRequestService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Models\TripRequest;
-use App\Models\TripStatus;
 use OpenApi\Attributes as OA;
 
 class TripRequestController extends Controller
 {
+    public function __construct(
+        private TripRequestService $tripRequestService
+    ) {}
+
     #[OA\Post(
         path: "/api/trip-requests",
         summary: "Criar uma nova solicitação de viagem",
@@ -44,32 +50,11 @@ class TripRequestController extends Controller
             new OA\Response(response: 422, description: "Erro de validação")
         ]
     )]
-    public function store(Request $request)
+    public function store(StoreTripRequestRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'destination' => 'required|string',
-            'departure_date' => 'required|date',
-            'return_date' => 'required|date|after_or_equal:departure_date',
-        ]);
+        $trip = $this->tripRequestService->store($request->validated(), $request->user());
 
-        // Buscar o status 'solicitado'
-        $pendingStatus = TripStatus::pending();
-
-        if (!$pendingStatus) {
-            return response()->json([
-                'error' => 'Status "solicitado" não encontrado. Execute o seeder de status.'
-            ], 500);
-        }
-
-        $travel = TripRequest::create([
-            'user_id' => auth()->id(),
-            'destination' => $validated['destination'],
-            'departure_date' => $validated['departure_date'],
-            'return_date' => $validated['return_date'],
-            'status_id' => $pendingStatus->id
-        ]);
-
-        return response()->json($travel, 201);
+        return response()->json($trip, 201);
     }
 
     #[OA\Get(
@@ -104,16 +89,11 @@ class TripRequestController extends Controller
             new OA\Response(response: 404, description: "Solicitação de viagem não encontrada")
         ]
     )]
-    public function show($id)
+    public function show(Request $request, int $id): JsonResponse
     {
-        $travel = TripRequest::with('user')->findOrFail($id);
+        $trip = $this->tripRequestService->show($id, $request->user());
 
-        // If the user is not an admin, ensure they own the trip request
-        if (auth()->user()->role !== 'admin' && $travel->user_id !== auth()->id()) {
-            abort(404); // Or 403, but 404 is better for security (don't reveal existence)
-        }
-
-        return response()->json($travel);
+        return response()->json($trip);
     }
 
     #[OA\Get(
@@ -143,33 +123,14 @@ class TripRequestController extends Controller
             )
         ]
     )]
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
-        $query = TripRequest::query();
+        $trips = $this->tripRequestService->index(
+            $request->user(),
+            $request->only(['status', 'destination', 'from', 'to'])
+        );
 
-        // If the user is not an admin, only show their own trip requests
-        if (auth()->user()->role !== 'admin') {
-            $query->where('user_id', auth()->id());
-        }
-
-        // Filtro por status (usando o nome do status)
-        if ($request->has('status')) {
-            $query->withStatus($request->status);
-        }
-
-        // Filtro por destino
-        if ($request->has('destination')) {
-            $query->withDestination($request->destination);
-        }
-
-        // Filtro por período de datas
-        if ($request->has(['from', 'to'])) {
-            $query->withDateRange($request->from, $request->to);
-        }
-
-        $tripRequests = $query->get();
-
-        return response()->json($tripRequests);
+        return response()->json($trips);
     }
 
     #[OA\Patch(
@@ -201,37 +162,10 @@ class TripRequestController extends Controller
             new OA\Response(response: 400, description: "Viagens aprovadas não podem ser canceladas")
         ]
     )]
-    public function updateStatus(Request $request, $id)
+    public function updateStatus(UpdateTripStatusRequest $request, int $id): JsonResponse
     {
-        $travel = TripRequest::findOrFail($id);
+        $trip = $this->tripRequestService->updateStatus($id, $request->status, $request->user());
 
-        if (auth()->user()->role !== 'admin') {
-            return response()->json(['error' => 'Apenas administradores podem alterar o status.'], 403);
-        }
-
-        $request->validate([
-            'status' => 'required|in:aprovado,cancelado'
-        ]);
-
-        // Verificar se o status atual permite a mudança
-        if (!$travel->canChangeStatusTo($request->status)) {
-            return response()->json([
-                'error' => "Não é possível alterar de '{$travel->status_name}' para '{$request->status}'."
-            ], 400);
-        }
-
-        // Buscar o novo status
-        $newStatus = TripStatus::where('name', $request->status)->first();
-
-        if (!$newStatus) {
-            return response()->json([
-                'error' => "Status '{$request->status}' não encontrado."
-            ], 400);
-        }
-
-        $travel->status_id = $newStatus->id;
-        $travel->save();
-
-        return response()->json($travel);
+        return response()->json($trip);
     }
 }

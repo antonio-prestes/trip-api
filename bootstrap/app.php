@@ -17,10 +17,41 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->render(function (\Tymon\JWTAuth\Exceptions\JWTException $e, $request) {
+        $exceptions->render(function (\Tymon\JWTAuth\Exceptions\JWTException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage(),
             ], 401);
+        });
+
+        $exceptions->render(function (\App\Exceptions\ForbiddenException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], 403);
+        });
+
+        $exceptions->render(function (\App\Exceptions\TripRequestCannotBeUpdatedException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], 400);
+        });
+
+        $exceptions->render(function (\DomainException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], 500);
+        });
+
+        $exceptions->render(function (\Exception $e) {
+            $code = $e->getCode();
+            $statusCode = ($code >= 400 && $code < 600) ? $code : 500;
+
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], $statusCode);
         });
     })->create();
