@@ -1,265 +1,121 @@
 # Trip API
 
-API REST para gerenciamento de solicitações de viagem com autenticação de usuários e controle de acesso baseado em roles.
+API REST para gerenciamento de solicitações de viagem com autenticação JWT e controle de acesso por roles.
 
-## 🚀 Sobre o Projeto
+## Tecnologias
 
-Esta API permite:
-- **Autenticação de usuários** com tokens JWT (JSON Web Tokens)
-- **Criação de solicitações de viagem** por usuários autenticados
-- **Gerenciamento de status** das solicitações (somente administradores)
-- **Filtros avançados** por status, destino e período de datas
-- **Documentação Swagger** integrada
+- Laravel 12 / PHP 8.2
+- MySQL 8.0 / SQLite (dev local)
+- Docker & Docker Compose
+- JWT Auth (tymon/jwt-auth)
+- PHPUnit
+- Swagger/OpenAPI (l5-swagger)
 
-## 🛠️ Tecnologias
+## Início Rápido
 
-- **Laravel 11** - Framework PHP
-- **MySQL 8.0** - Banco de dados
-- **Docker & Docker Compose** - Containerização
-- **JWT Auth** - Autenticação API com tokens JWT
-- **PHPUnit** - Testes automatizados
-- **Swagger/OpenAPI** - Documentação da API
-
-## 📋 Pré-requisitos
-
-- [Docker](https://www.docker.com/get-started) instalado
-- [Docker Compose](https://docs.docker.com/compose/install/) instalado
-
-## 🚀 Configuração do Ambiente
-
-### Opções de Banco de Dados
-
-O projeto suporta múltiplas configurações de banco de dados:
-
-1. **MySQL com Docker** (padrão para desenvolvimento)
-   - Configurado no arquivo `.env` padrão
-   - Utiliza o container MySQL definido no docker-compose.yml
-
-2. **SQLite para desenvolvimento local**
-   - Configurado no arquivo `.env.local`
-   - Utiliza o arquivo `database/database.sqlite`
-   - Ideal para desenvolvimento sem Docker
-
-
-Para alternar entre as configurações:
 ```bash
-# Usar SQLite local (sem Docker)
-cp .env.local .env
-
-# Usar MySQL com Docker (padrão)
-cp .env.example .env
+./up.sh    # Sobe containers, instala deps, roda migrations/seeders
+./down.sh  # Para o ambiente
 ```
 
-### Opção 1: Configuração Automática (Recomendado)
+**Usuários criados automaticamente:**
+- Admin: `admin@example.com` / `password`
+- Usuários normais: 5 usuários aleatórios com senha `password`
 
-1. **Clone o repositório:**
-   ```bash
-   git clone <url-do-repositorio>
-   cd trip-api
-   ```
+**Acessos:**
+- API: `http://localhost:8000`
+- Swagger: `http://localhost:8000/api/documentation`
 
-2. **Execute o script de configuração:**
-   ```bash
-   ./up.sh
-   ```
+## Banco de Dados
 
-Esse comando irá:
-- Copiar o arquivo `.env.example` para `.env`;
-- Subir os containers Docker;
-- Instalar as dependências PHP;
-- Gerar a chave da aplicação;
-- Executar as migrations e os seeders automaticamente (criando o usuário admin, 5 usuários normais e 5 viagens para cada usuário);
-- Gerar a documentação Swagger.
-
-Não é necessário rodar comandos adicionais para popular o banco: tudo é feito automaticamente ao rodar o `up.sh`.
-
-### Usuários criados automaticamente
-
-- **Admin:**
-    - Email: `admin@example.com`
-    - Senha: `password` (padrão de factory Laravel)
-
-- **Usuário normal:**
-    - Email: (um dos 5 aleatórios gerados, ex: `user1@example.com`)
-    - Senha: `password` (padrão de factory Laravel)
-
-3. **Acesse a aplicação:**
-   - API: http://localhost:8000
-   - Documentação Swagger: http://localhost:8000/api/documentation
-
-### Opção 2: Configuração Manual
-
-1. **Clone o repositório:**
-   ```bash
-   git clone <url-do-repositorio>
-   cd trip-api
-   ```
-
-2. **Configure o ambiente:**
-   ```bash
-   cp .env.example .env
-   ```
-
-3. **Suba os containers:**
-   ```bash
-   docker-compose up -d
-   ```
-
-4. **Instale as dependências:**
-   ```bash
-   docker exec trip_laravel_app composer install
-   ```
-
-5. **Execute migrations e seeders:**
-   ```bash
-   docker exec trip_laravel_app php artisan migrate --seed
-   ```
-
-> **Obs:** Todos os usuários criados via seeder utilizam a senha padrão `password`.
-
-## 🧪 Executando Testes
-
-Para executar os testes utilizando o banco de dados MySQL do Docker, utilize o seguinte comando:
-
+Alternar entre MySQL (Docker) e SQLite (local):
 ```bash
-# Todos os testes (SQLite em memória)
-php artisan test
+cp .env.local .env   # SQLite local
+cp .env.example .env  # MySQL Docker (padrão)
 ```
 
-## 📚 Documentação da API
+## Endpoints
 
-A documentação completa da API está disponível em:
-- **Swagger UI:** http://localhost:8000/api/documentation
-- **Postman Collection:** Importe o arquivo `Travel-API-Postman-Collection.json`
+### Autenticação
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| POST | `/api/register` | Registrar usuário |
+| POST | `/api/login` | Login |
+| POST | `/api/logout` | Logout |
+| POST | `/api/refresh` | Refresh token |
+| GET | `/api/user` | Dados do usuário |
 
-### Endpoints Principais
+### Solicitações de Viagem
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| POST | `/api/trip-requests` | Criar solicitação |
+| GET | `/api/trip-requests` | Listar (com filtros) |
+| GET | `/api/trip-requests/{id}` | Detalhes |
+| PATCH | `/api/trip-requests/{id}/status` | Atualizar status (admin) |
 
-#### Autenticação
-- `POST /api/register` - Registrar usuário
-- `POST /api/login` - Login
-- `GET /api/user` - Dados do usuário autenticado
-- `POST /api/logout` - Logout
-
-#### Solicitações de Viagem
-- `POST /api/trip-requests` - Criar solicitação
-- `GET /api/trip-requests` - Listar solicitações (com filtros)
-- `GET /api/trip-requests/{id}` - Detalhes da solicitação
-- `PATCH /api/trip-requests/{id}/status` - Atualizar status (admin)
-
-### Filtros Disponíveis
-
-```bash
-# Por status
+### Filtros
+```
 GET /api/trip-requests?status=aprovado
-
-# Por destino
 GET /api/trip-requests?destination=Paris
-
-# Por período
 GET /api/trip-requests?from=2024-08-01&to=2024-12-31
-
-# Combinados
-GET /api/trip-requests?status=solicitado&destination=Nova
 ```
 
-## 👥 Roles e Permissões
+## Roles
 
-### Usuário Comum (`user`)
-- Criar solicitações de viagem
-- Visualizar próprias solicitações
+- **user**: criar e visualizar próprias solicitações
+- **admin**: todas as permissões + alterar status + ver todas as solicitações
 
-### Administrador (`admin`)
-- Todas as permissões do usuário comum
-- Alterar status das solicitações
-- Visualizar todas as solicitações
-
-## 💾 Estrutura do Banco
-
-### Tabelas Principais
-
-- **users** - Usuários do sistema
-- **trip_requests** - Solicitações de viagem
-- **trip_status** - Status das solicitações
-
-### Status Disponíveis
-
-| Status | Descrição | Cor |
-|--------|-----------|-----|
-| solicitado | Aguardando análise | #F59E0B |
-| aprovado | Viagem aprovada | #10B981 |
-| cancelado | Viagem cancelada | #EF4444 |
-
-## 🛠️ Scripts Utilitários
-
-### Configuração Rápida
-```bash
-./up.sh    # Configura e inicia todo o ambiente
-./down.sh  # Para o ambiente (com opção de limpar dados)
-```
-
-## 🐛 Comandos Úteis
-
-```bash
-# Logs da aplicação
-docker logs trip_laravel_app
-
-# Acessar container do Laravel
-docker exec -it trip_laravel_app bash
-
-# Acessar MySQL
-docker exec -it trip_mysql_db mysql -u laravel -psecret laravel
-
-# Rebuild containers
-docker-compose down && docker-compose up -d --build
-
-# Limpar cache
-docker exec trip_laravel_app php artisan cache:clear
-docker exec trip_laravel_app php artisan config:clear
-
-# Status dos containers
-docker-compose ps
-
-# Parar apenas um serviço
-docker-compose stop laravel_app
-
-# Ver uso de recursos
-docker stats
-```
-
-## 🔄 Atualizando o Projeto
-
-```bash
-# Atualizar dependências
-docker exec trip_laravel_app composer update
-
-# Executar novas migrations
-docker exec trip_laravel_app php artisan migrate
-
-# Recriar banco (cuidado!)
-docker exec trip_laravel_app php artisan migrate:fresh --seed
-```
-
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
-travel-api/
+trip-api/
 ├── app/
-│   ├── Http/Controllers/
-│   │   ├── AuthController.php
-│   │   └── TripRequestController.php
-│   └── Models/
-│       ├── User.php
-│       ├── TripRequest.php
-│       └── TripStatus.php
+│   ├── Exceptions/
+│   │   ├── ForbiddenException.php
+│   │   └── TripRequestCannotBeUpdatedException.php
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── Controller.php
+│   │   │   ├── AuthController.php
+│   │   │   └── TripRequestController.php
+│   │   ├── Middleware/
+│   │   │   └── CheckRole.php
+│   │   └── Requests/
+│   │       ├── StoreTripRequestRequest.php
+│   │       └── UpdateTripStatusRequest.php
+│   ├── Models/
+│   │   ├── User.php
+│   │   ├── TripRequest.php
+│   │   └── TripStatus.php
+│   └── Services/
+│       ├── AuthService.php
+│       └── TripRequestService.php
+├── bootstrap/
+│   └── app.php              # Exception handlers
 ├── database/
+│   ├── factories/
 │   ├── migrations/
-│   ├── seeders/
-│   └── factories/
+│   └── seeders/
 ├── routes/
 │   └── api.php
 ├── tests/
-│   └── Unit/
+│   └── Feature/
 ├── docker-compose.yml
 ├── up.sh
-└── Travel-API-Postman-Collection.json
+└── down.sh
+```
+
+## Testes
+
+```bash
+php artisan test
+```
+
+## Comandos Úteis
+
+```bash
+docker exec trip_laravel_app bash                          # Acessar container
+docker exec trip_laravel_app php artisan cache:clear       # Limpar cache
+docker exec trip_laravel_app php artisan migrate:fresh --seed  # Recriar banco
+docker-compose logs -f                                     # Ver logs
 ```
