@@ -68,8 +68,7 @@ class AuthController extends Controller
                     new OA\Property(property: "name", type: "string", example: "John Doe"),
                     new OA\Property(property: "email", type: "string", format: "email", example: "user@example.com"),
                     new OA\Property(property: "password", type: "string", format: "password", example: "password"),
-                    new OA\Property(property: "password_confirmation", type: "string", format: "password", example: "password"),
-                    new OA\Property(property: "role", type: "string", example: "user", enum: ["user", "admin"])
+                    new OA\Property(property: "password_confirmation", type: "string", format: "password", example: "password")
                 ]
             )
         ),

@@ -82,7 +82,7 @@ class AuthService
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
                 'password' => 'required|string|min:6|confirmed',
-                'role' => 'sometimes|string|in:user,admin',
+                'role' => 'prohibited',
             ]);
 
             if ($validator->fails()) {
@@ -94,7 +94,7 @@ class AuthService
             $user->name = $userData['name'];
             $user->email = $userData['email'];
             $user->password = Hash::make($userData['password']);
-            $user->role = $userData['role'] ?? 'user';
+            $user->role = 'user';
             $user->save();
 
             // Generate token
