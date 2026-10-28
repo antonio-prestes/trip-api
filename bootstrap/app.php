@@ -47,6 +47,10 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (\Exception $e) {
+            if ($e instanceof \Illuminate\Validation\ValidationException ||
+                $e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
+                return null;
+            }
             $code = $e->getCode();
             $statusCode = ($code >= 400 && $code < 600) ? $code : 500;
 
